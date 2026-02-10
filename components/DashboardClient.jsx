@@ -60,7 +60,14 @@ export default function DashboardClient({ serverUser }) {
     if (!title || !content) return; // タイトルと内容が必須
     setIsSubmitting(true); // 送信中状態に設定
     try {
-      await addPost(user.uid, user.email ?? "", title, content); // 投稿追加
+      +(await addPost(
+        user.uid,
+        user.email ?? "",
+        user.displayName ?? "",
+        user.photoURL ?? "",
+        title,
+        content,
+      )); // 投稿追加
       setTitle("");
       setContent("");
     } catch (err) {

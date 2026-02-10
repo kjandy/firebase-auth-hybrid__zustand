@@ -193,11 +193,20 @@ const useFirestoreStore = create((set, get) => ({
   // ============================================
   // 投稿を追加
   // ============================================
-  addPost: async (userId, userEmail, title, content) => {
+  addPost: async (
+    userId,
+    userEmail,
+    userName,
+    userPhotoURL,
+    title,
+    content,
+  ) => {
     try {
       await addDoc(collection(db, "posts"), {
         userId,
         userEmail: userEmail ?? "",
+        userName: userName ?? "",
+        userPhotoURL: userPhotoURL ?? "",
         title,
         content,
         createdAt: serverTimestamp(),

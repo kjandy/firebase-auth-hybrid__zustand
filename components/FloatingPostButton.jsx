@@ -34,7 +34,14 @@ export default function FloatingPostButton() {
 
     setIsSubmitting(true);
     try {
-      await addPost(user.uid, user.email ?? "", title, content);
+      +(await addPost(
+        user.uid,
+        user.email ?? "",
+        user.displayName ?? "",
+        user.photoURL ?? "",
+        title,
+        content,
+      ));
       setTitle("");
       setContent("");
       setOpen(false);

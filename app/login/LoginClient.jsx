@@ -21,6 +21,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { user, loading, error, signIn, signUp, signInWithGoogle } =
     useAuthStore();
@@ -47,7 +48,7 @@ export default function LoginPage() {
   const handleSignUp = async () => {
     setIsLoading(true);
     try {
-      await signUp(email, password);
+      await signUp(email, password, displayName);
       router.push("/");
     } catch {
     } finally {
@@ -130,6 +131,19 @@ export default function LoginPage() {
 
             {/* メール/パスワード */}
             <form onSubmit={handleSignIn} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="displayName">ユーザー名（新規登録時）</Label>
+                <Input
+                  id="displayName"
+                  placeholder="例：Koji"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  disabled={isLoading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  ※メール/パスワードで登録する場合に使用します（後から変更も可能）
+                </p>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email">メールアドレス</Label>
                 <Input

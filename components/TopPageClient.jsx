@@ -16,7 +16,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
 
 export default function TopPageClient({ initialUser }) {
@@ -137,8 +137,19 @@ export default function TopPageClient({ initialUser }) {
                           >
                             <div className="flex items-start gap-3">
                               <Avatar className="h-10 w-10">
+                                {post.userPhotoURL ? (
+                                  <AvatarImage
+                                    src={post.userPhotoURL}
+                                    alt={
+                                      post.userName || post.userEmail || "user"
+                                    }
+                                  />
+                                ) : null}
+
                                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-sm font-bold">
-                                  {getInitials(post.userEmail || "U")}
+                                  {getInitials(
+                                    post.userName || post.userEmail || "U",
+                                  )}
                                 </AvatarFallback>
                               </Avatar>
 

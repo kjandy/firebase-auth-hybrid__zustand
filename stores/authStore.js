@@ -12,6 +12,7 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
+  updateProfile,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
@@ -38,12 +39,18 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
-  signUp: async (email, password) => {
+  signUp: async (email, password, displayName) => {
     try {
       set({ error: null });
       if (password.length < 6)
         throw new Error("パスワードは6文字以上である必要があります");
-      await createUserWithEmailAndPassword(auth, email, password);
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      // displayName をAuthに保存（メールユーザー用）
+      // trim() して空白だけの名前を防止
+      if (displayName?.trim()) {
+        //  ユーザープロフィールを更新して displayName を保存
+        await updateProfile(cred.user, { displayName: displayName.trim() });
+      }
     } catch (error) {
       const msg = error.message || getAuthErrorMessage(error.code);
       set({ error: msg });
