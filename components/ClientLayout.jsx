@@ -5,12 +5,18 @@
 "use client";
 import { useEffect } from "react";
 import { initAuth } from "@/stores/authStore";
+import FloatingPostButton from "@/components/FloatingPostButton";
 
 export default function ClientLayout({ children }) {
   useEffect(() => {
-    const unsubscribe = initAuth(); // 認証監視を開始
-    return () => unsubscribe(); // クリーンアップ
+    const unsubscribe = initAuth();
+    return () => unsubscribe();
   }, []);
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <FloatingPostButton />
+    </>
+  );
 }
