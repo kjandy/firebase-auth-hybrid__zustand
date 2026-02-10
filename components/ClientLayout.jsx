@@ -9,8 +9,8 @@ import FloatingPostButton from "@/components/FloatingPostButton";
 
 export default function ClientLayout({ children }) {
   useEffect(() => {
-    const unsubscribe = initAuth();
-    return () => unsubscribe();
+    const unsubscribe = initAuth(); // 認証監視開始
+    return () => unsubscribe(); // クリーンアップ
   }, []);
 
   return (

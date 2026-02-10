@@ -1,5 +1,8 @@
 // ============================================
 // 3. Zustand Store (stores/authStore.js)
+// 認証状態を管理するための Zustand ストア
+// このファイルは、ユーザーの認証状態を管理し、
+// サインイン、サインアップ、サインアウトの機能を提供します。
 // ============================================
 import { create } from "zustand";
 import {
@@ -74,6 +77,11 @@ const useAuthStore = create((set, get) => ({
   },
 
   // --- Session ---
+  // ブラウザが HTTP リクエストを作る
+  // Next.js が /api/auth/session を見つける
+  // POST() が定義されている！
+  // その HTTP リクエスト全体を request として渡す
+
   createSession: async (user) => {
     try {
       const idToken = await user.getIdToken();

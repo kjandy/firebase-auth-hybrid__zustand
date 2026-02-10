@@ -3,6 +3,7 @@
 //    (components/TopPageClient.jsx)
 // ============================================
 "use client";
+
 import { useEffect, useRef } from "react";
 import useAuthStore from "@/stores/authStore";
 import useFirestoreStore from "@/stores/firestoreStore";
@@ -15,33 +16,48 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
 
 export default function TopPageClient({ initialUser }) {
   const { user, loading } = useAuthStore();
+
   const {
     timeline,
     timelineLoading,
     timelineHasMore,
-    loadTimeline,
+    subscribeTimeline,
+    unsubscribeTimeline,
     loadMoreTimeline,
     resetTimeline,
   } = useFirestoreStore();
+
   const router = useRouter();
   const observerRef = useRef(null);
   const loadMoreRef = useRef(null);
 
-  // タイムライン読み込み
+  // ==================================================
+  // タイムライン購読：ログイン中だけ onSnapshot を有効化
+  // ==================================================
   useEffect(() => {
     if (user) {
-      loadTimeline();
+      subscribeTimeline();
     } else {
+      // ログアウトしたら購読解除＆表示リセット
+      unsubscribeTimeline();
       resetTimeline();
     }
-  }, [user]);
 
-  // 無限スクロール設定
+    // 画面離脱時にも解除（メモリリーク防止）
+    return () => {
+      unsubscribeTimeline();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid]); // user オブジェクト全体だと変化が多いので uid だけを見る
+
+  // ==================================================
+  // 無限スクロール設定（次ページの getDocs）
+  // ==================================================
   useEffect(() => {
     if (!user || !timelineHasMore) return;
 
@@ -61,11 +77,9 @@ export default function TopPageClient({ initialUser }) {
     observerRef.current = observer;
 
     return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
+      observer.disconnect();
     };
-  }, [user, timelineHasMore, timelineLoading]);
+  }, [user?.uid, timelineHasMore, timelineLoading, loadMoreTimeline]);
 
   const getInitials = (email) => (email ? email.charAt(0).toUpperCase() : "?");
 
@@ -92,57 +106,12 @@ export default function TopPageClient({ initialUser }) {
               <p className="text-gray-500">みんなの投稿をチェックしましょう</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* 左カラム: クイックアクション */}
-              <div className="lg:col-span-1 space-y-4">
-                <Card
-                  className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => router.push("/dashboard")}
-                >
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <span>📊</span> ダッシュボード
-                    </CardTitle>
-                    <CardDescription>あなたのデータを確認</CardDescription>
-                  </CardHeader>
-                </Card>
-
-                <Card
-                  className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => router.push("/dashboard")}
-                >
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <span>📝</span> 新規投稿
-                    </CardTitle>
-                    <CardDescription>Firestoreに投稿を作成</CardDescription>
-                  </CardHeader>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">📈 統計</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          全体の投稿数
-                        </span>
-                        <span className="font-semibold">
-                          {timeline.length}+
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* 右カラム: タイムライン */}
+            <div className="grid grid-cols-1">
+              {/* タイムライン */}
               <div className="lg:col-span-2">
                 <Card>
                   <CardHeader>
-                    <CardTitle>🌐 タイムライン</CardTitle>
+                    <CardTitle>タイムライン</CardTitle>
                     <CardDescription>みんなの最新投稿</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -161,7 +130,7 @@ export default function TopPageClient({ initialUser }) {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {timeline.map((post, index) => (
+                        {timeline.map((post) => (
                           <div
                             key={post.id}
                             className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
@@ -172,17 +141,20 @@ export default function TopPageClient({ initialUser }) {
                                   {getInitials(post.userEmail || "U")}
                                 </AvatarFallback>
                               </Avatar>
+
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <span className="font-semibold text-sm truncate">
                                     {post.userEmail || "ユーザー"}
                                   </span>
+
                                   {post.createdAt && (
                                     <span className="text-xs text-muted-foreground">
                                       {formatRelativeTime(post.createdAt)}
                                     </span>
                                   )}
                                 </div>
+
                                 <h3 className="font-semibold mt-1">
                                   {post.title}
                                 </h3>
@@ -194,7 +166,7 @@ export default function TopPageClient({ initialUser }) {
                           </div>
                         ))}
 
-                        {/* 無限スクロールのトリガー要素 */}
+                        {/* 無限スクロールのトリガー */}
                         {timelineHasMore && (
                           <div ref={loadMoreRef} className="py-4 text-center">
                             {timelineLoading ? (
@@ -227,38 +199,12 @@ export default function TopPageClient({ initialUser }) {
             <div className="space-y-2">
               <h1 className="text-4xl font-bold">MyApp へようこそ</h1>
               <p className="text-gray-500 text-lg">
-                Firebase + Next.js で構築されたアプリ
+                Next.js + Firebase Authentication + Firestore + Zustand
               </p>
             </div>
 
             <Card>
               <CardContent className="pt-6 space-y-4">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl">🔐</div>
-                    <div className="text-sm font-medium mt-1">
-                      ハイブリッド認証
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      安全なセッション管理
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-2xl">⚡</div>
-                    <div className="text-sm font-medium mt-1">Firestore</div>
-                    <div className="text-xs text-gray-500">
-                      リアルタイムデータ
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-2xl">🚀</div>
-                    <div className="text-sm font-medium mt-1">Next.js 15</div>
-                    <div className="text-xs text-gray-500">
-                      最新テクノロジー
-                    </div>
-                  </div>
-                </div>
-
                 <Button
                   className="w-full"
                   onClick={() => router.push("/login")}

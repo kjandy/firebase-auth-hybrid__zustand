@@ -60,7 +60,7 @@ export default function DashboardClient({ serverUser }) {
     if (!title || !content) return; // タイトルと内容が必須
     setIsSubmitting(true); // 送信中状態に設定
     try {
-      await addPost(user.uid, title, content); // 投稿追加
+      await addPost(user.uid, user.email ?? "", title, content); // 投稿追加
       setTitle("");
       setContent("");
     } catch (err) {
@@ -76,7 +76,7 @@ export default function DashboardClient({ serverUser }) {
       <main className="container mx-auto max-w-6xl px-4 py-8 space-y-6">
         {/* ユーザー情報 */}
         <Card>
-          <CardContent className="pt-6">
+          <CardContent>
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
                 {user?.photoURL ? (
@@ -105,7 +105,7 @@ export default function DashboardClient({ serverUser }) {
           <div className="lg:col-span-1 space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>📝 新規投稿</CardTitle>
+                <CardTitle>新規投稿</CardTitle>
                 <CardDescription>Firestoreに保存される</CardDescription>
               </CardHeader>
               <CardContent>
@@ -149,7 +149,7 @@ export default function DashboardClient({ serverUser }) {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>📊 あなたの投稿</CardTitle>
+                <CardTitle>あなたの投稿</CardTitle>
                 <CardDescription>リアルタイム更新</CardDescription>
               </CardHeader>
               <CardContent>

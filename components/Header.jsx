@@ -32,10 +32,7 @@ export default function Header() {
           onClick={() => router.push("/")}
           className="flex items-center gap-2"
         >
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">A</span>
-          </div>
-          <span className="font-semibold text-lg hidden sm:inline">MyApp</span>
+          <span className="font-semibold text-lg sm:inline">MyApp</span>
         </button>
 
         {/* ナビゲーション＋ログイン情報 */}
