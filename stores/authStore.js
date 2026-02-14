@@ -17,6 +17,11 @@ import {
 import { auth } from "@/lib/firebase";
 
 const useAuthStore = create((set, get) => ({
+  //ユーザーの認証状態を管理するための Zustand ストアを定義しています。
+  // 外部イベント（Firebase）から状態を受け取りそのまま set() するため
+  // get()はストア内部で現在の状態を取得するための関数
+  // ここでは必要ないが、Zustand のルール上引数として受け取る必要がある。
+
   // --- State ---
   user: null,
   loading: true,
@@ -84,10 +89,15 @@ const useAuthStore = create((set, get) => ({
   },
 
   // --- Session ---
-  // ブラウザが HTTP リクエストを作る
-  // Next.js が /api/auth/session を見つける
-  // POST() が定義されている！
-  // その HTTP リクエスト全体を request として渡す
+
+  // クライアント（fetch）が /api/auth/session に HTTP POST を送る
+  // Next.js が app/api/auth/session/route.js の POST() を呼び出す
+  // POST(request) の request には、HTTPリクエスト情報（body/headers等）が入っている
+  // request.json() で idToken を取り出す
+  // サーバーで Firebase Admin SDK により idToken を検証（verifyIdToken）
+  // 検証OKならセッションCookieを生成（createSessionCookie）
+  // cookies().set() により Set-Cookie ヘッダーで httpOnly Cookie を返す
+  // ブラウザがCookieを保存し、以後のリクエストで自動送信される
 
   createSession: async (user) => {
     try {
@@ -125,10 +135,15 @@ function getAuthErrorMessage(code) {
 
 // --- 認証監視の開始 ---
 export function initAuth() {
+  // onAuthStateChanged は Firebase Auth の関数
   return onAuthStateChanged(auth, async (user) => {
-    const store = useAuthStore.getState();
-    store.setUser(user);
+    const store = useAuthStore.getState(); // getState()はget()と違い、ストアの外側からストアの状態を直接取得するための関数
+    store.setUser(user); // ユーザーの状態を更新
     if (user) {
+      //IDトークンをサーバーへ送る
+      // サーバーが検証する
+      // サーバーが session cookieを発行する
+      // ブラウザにCookieを返す
       await store.createSession(user);
     }
   });
